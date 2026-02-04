@@ -1,0 +1,19 @@
+---
+- name: Restart Chrony
+  service:
+    name: chrony
+    state: restarted
+
+- name: Restart Munge
+  service:
+    name: munge
+    state: restarted
+
+- name: Restart SSH
+  service:
+    name: ssh
+    state: restarted
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: yes

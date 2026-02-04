@@ -1,0 +1,9 @@
+# --- Managed by MAS-HPC Ansible ---
+# Open OnDemand Portal Configuration
+servername: {{ hostvars['login']['ansible_host'] }}
+port: 80
+
+# Map to the LDAP server we set up on this same node
+auth:
+  - 'type: ldap'
+    'ldap_url: "ldap://{{ hostvars['login']['ansible_host'] }}/{{ ldap_base_dn }}?uid"'

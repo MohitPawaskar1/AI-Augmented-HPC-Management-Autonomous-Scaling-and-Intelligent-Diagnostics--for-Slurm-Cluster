@@ -1,0 +1,11 @@
+# --- Managed by MAS-HPC Ansible ---
+ArchiveEvents=yes
+ArchiveJobs=yes
+DbHost=localhost
+DbName=slurm_acct_db
+DbUser=slurm
+DbPass={{ ldap_admin_pass }}
+DbdHost=master
+StorageType=accounting_storage/mysql
+LogFile=/var/log/slurm/slurmdbd.log
+PidFile=/var/run/slurmdbd.pid

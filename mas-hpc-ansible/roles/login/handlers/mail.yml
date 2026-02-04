@@ -1,0 +1,5 @@
+---
+- name: Reload Slurm Client
+  service:
+    name: munge
+    state: restarted

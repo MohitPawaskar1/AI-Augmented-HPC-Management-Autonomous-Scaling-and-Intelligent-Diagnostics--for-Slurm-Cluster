@@ -1,0 +1,4 @@
+# --- Managed by MAS-HPC Ansible ---
+{% for host in groups['cluster'] %}
+{{ nfs_root }} {{ hostvars[host]['ansible_host'] }}(rw,sync,no_subtree_check,no_root_squash)
+{% endfor %}

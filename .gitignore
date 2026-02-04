@@ -1,0 +1,27 @@
+# --- Secrets and Security ---
+*.key
+*.pem
+*.env
+ansible.cfg
+munge.key
+slurm-cluster-key.pem
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.python-version
+
+# --- Slurm & Logs ---
+slurm-*.out
+*.log
+agent_logs/
+
+# --- System & OS ---
+.DS_Store
+Thumbs.db
+cluster_state.json
+
+# --- Ansible ---
+*.retry

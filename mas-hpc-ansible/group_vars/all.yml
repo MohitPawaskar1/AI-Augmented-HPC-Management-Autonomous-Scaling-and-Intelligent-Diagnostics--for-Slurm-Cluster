@@ -1,0 +1,22 @@
+---
+# --- Networking & Domain ---
+domain_name: "acts.cluster"
+ldap_base_dn: "dc=acts,dc=cluster"
+
+# --- Storage Configuration ---
+# This is the root folder shared across the entire cluster via NFS
+nfs_root: "/storage"
+
+# --- Slurm Configuration ---
+slurm_version: "23.11"
+# This password is used for both LDAP admin and the Slurm Database
+ldap_admin_pass: "admin123" 
+
+# --- AI Agent Settings ---
+# Tailscale key for Cloud Bursting (Agent-2)
+# Replace this with your actual auth key from the Tailscale dashboard
+tailscale_auth_key: "tskey-auth-yourkeyhere"
+
+# --- Hardware Limits (For the Demo) ---
+# Default memory limit in Megabytes if not specified in the job
+default_mem_limit: 1024

@@ -1,0 +1,7 @@
+# --- Managed by MAS-HPC Ansible ---
+BASE    {{ ldap_base_dn }}
+# Dynamically points to the IP of the host named 'login' from inventory
+URI     ldap://{{ hostvars['login']['ansible_host'] }}
+
+# SSL/TLS options (Optional for demo, set to off for simplicity)
+REFERRALS off

@@ -1,0 +1,10 @@
+---
+- name: Restart Slapd
+  service:
+    name: slapd
+    state: restarted
+
+- name: Restart NSCD
+  service:
+    name: nscd
+    state: restarted

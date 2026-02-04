@@ -1,0 +1,16 @@
+---
+- name: Install Open-OnDemand Repo
+  apt:
+    deb: https://yum.osc.edu/ondemand/latest/ondemand-release-web-latest.deb
+
+- name: Install Open-OnDemand and Apache
+  apt:
+    name: [ondemand, apache2]
+    state: present
+    update_cache: yes
+
+- name: Apply OOD Portal Configuration
+  template:
+    src: ood_portal.conf.j2
+    dest: /etc/ood/config/ood_portal.yml
+  notify: Rebuild OOD Portal

@@ -1,0 +1,55 @@
+---
+# ==========================================
+# PART 1: NFS SERVER SETUP (Runs on compute2)
+# ==========================================
+- name: Install NFS Server packages
+  apt:
+    name: nfs-kernel-server
+    state: present
+  when: inventory_hostname == 'compute2'
+
+- name: Create Base, Input, and Output directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '1777'  # Sticky bit: anyone can write, only owners can delete
+    owner: nobody
+    group: nogroup
+  loop:
+    - "{{ nfs_root }}"
+    - "{{ nfs_root }}/input"
+    - "{{ nfs_root }}/output"
+  when: inventory_hostname == 'compute2'
+
+- name: Deploy NFS exports configuration
+  template:
+    src: exports.j2
+    dest: /etc/exports
+  when: inventory_hostname == 'compute2'
+  notify: Restart NFS Server
+
+# ==========================================
+# PART 2: NFS CLIENT SETUP (Everyone else)
+# ==========================================
+- name: Install NFS Client packages
+  apt:
+    name: nfs-common
+    state: present
+  when: inventory_hostname != 'compute2'
+
+- name: Create local mount point directory
+  file:
+    path: "{{ nfs_root }}"
+    state: directory
+    mode: '0777'
+  when: inventory_hostname != 'compute2'
+
+- name: Mount shared storage from compute2
+  mount:
+    path: "{{ nfs_root }}"
+    # Dynamically grabs compute2's IP from inventory
+    src: "{{ hostvars['compute2']['ansible_host'] }}:{{ nfs_root }}"
+    fstype: nfs
+    opts: "rw,sync,hard,intr"
+    state: mounted
+  when: inventory_hostname != 'compute2'

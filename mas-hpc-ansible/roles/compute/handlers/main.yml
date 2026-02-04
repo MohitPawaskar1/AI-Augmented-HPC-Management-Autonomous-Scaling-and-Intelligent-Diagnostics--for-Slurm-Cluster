@@ -1,0 +1,8 @@
+---
+- name: Restart Slurmd
+  service:
+    name: slurmd
+    state: restarted
+
+- name: Update Grub
+  command: update-grub

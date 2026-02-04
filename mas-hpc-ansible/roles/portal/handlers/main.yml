@@ -1,0 +1,9 @@
+---
+- name: Rebuild OOD Portal
+  command: /opt/ood/ood-portal-generator/sbin/update_ood_portal
+  notify: Restart Apache
+
+- name: Restart Apache
+  service:
+    name: apache2
+    state: restarted

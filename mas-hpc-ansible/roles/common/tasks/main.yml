@@ -1,0 +1,75 @@
+---
+- name: Set system hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Generate /etc/hosts from template
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload Systemd
+
+- name: Install foundational packages and SSH
+  apt:
+    name:
+      - chrony
+      - munge
+      - curl
+      - wget
+      - vim
+      - build-essential
+      - software-properties-common
+      - python3-pymysql
+      - openssh-server
+    state: present
+    update_cache: yes
+
+- name: Ensure SSH is running
+  service:
+    name: ssh
+    state: started
+    enabled: yes
+
+- name: Create Munge key directory
+  file:
+    path: /etc/munge
+    state: directory
+    owner: munge
+    group: munge
+    mode: '0700'
+  notify: Restart Munge
+
+- name: Sync Munge Key to all nodes
+  copy:
+    src: munge.key
+    dest: /etc/munge/munge.key
+    owner: munge
+    group: munge
+    mode: '0400'
+  notify: Restart Munge
+
+# --- SSH PASSWOREDLESS LOGIC ---
+
+- name: Generate SSH Key for Master nodes
+  user:
+    name: acts
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+  when: "'masters' in group_names"
+
+- name: Fetch Master Public Keys
+  shell: cat /home/acts/.ssh/id_rsa.pub
+  register: master_keys
+  when: "'masters' in group_names"
+  changed_when: false
+
+- name: Deploy Master Keys to Compute nodes ONLY
+  authorized_key:
+    user: acts
+    state: present
+    key: "{{ hostvars['master1']['master_keys']['stdout'] }}"
+  when: "'computes' in group_names"

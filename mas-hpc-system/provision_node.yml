@@ -1,0 +1,115 @@
+---
+- name: "Provision AWS Slurm Worker"
+  hosts: all
+  become: yes
+  vars:
+    slurm_uid: 64030
+    slurm_gid: 64030
+    master_ip: "100.69.30.114"
+    master_hostname: "master"
+    nfs_server_ip: "100.111.177.101"
+
+  tasks:
+    - name: "Set Hostname to match Slurm Config"
+      hostname:
+        name: "aws-node1"
+
+    - name: "Ensure Master IP is in /etc/hosts"
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ master_ip }} {{ master_hostname }} acts-TP12XH-L2I"
+        state: present
+
+    - name: "Add local hostname to /etc/hosts"
+      lineinfile:
+        path: /etc/hosts
+        line: "127.0.1.1 aws-node1"
+        state: present
+
+    - name: "Create Slurm Group"
+      group:
+        name: slurm
+        gid: "{{ slurm_gid }}"
+        state: present
+
+    - name: "Create Slurm User"
+      user:
+        name: slurm
+        uid: "{{ slurm_uid }}"
+        group: slurm
+        shell: /bin/false
+        state: present
+
+    - name: "Install Slurm, Munge, and NFS Client"
+      apt:
+        name: 
+          - slurmd
+          - munge
+          - slurm-wlm-basic-plugins
+          - nfs-common
+        state: present
+        update_cache: yes
+
+    - name: "Create NFS Mount Directories"
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0777'
+      loop:
+        - /storage/input
+        - /storage/output
+
+    - name: "Mount NFS Shares from Compute2"
+      mount:
+        path: "{{ item.path }}"
+        src: "{{ nfs_server_ip }}:{{ item.src }}"
+        fstype: nfs
+        opts: defaults,timeo=14,intr
+        state: mounted
+      loop:
+        - { path: '/storage/input', src: '/storage/input' }
+        - { path: '/storage/output', src: '/storage/output' }
+
+    - name: "Sync Munge Key"
+      copy:
+        src: /home/cluster-admin/mas-hpc/munge.key
+        dest: /etc/munge/munge.key
+        owner: munge
+        group: munge
+        mode: '0400'
+
+    - name: "Sync Slurm Config"
+      copy:
+        src: /etc/slurm/slurm.conf
+        dest: /etc/slurm/slurm.conf
+        owner: slurm
+        group: slurm
+        mode: '0644'
+
+    - name: "Setup Slurm Directories"
+      file:
+        path: "{{ item }}"
+        owner: slurm
+        group: slurm
+        state: directory
+        mode: '0775'
+        recurse: yes
+      loop:
+        - /var/spool/slurmd
+        - /var/log/slurm
+        - /var/run/slurm
+
+    - name: "Ensure /var/run/slurm survives reboot"
+      copy:
+        content: "d /var/run/slurm 0755 slurm slurm -"
+        dest: /etc/tmpfiles.d/slurm.conf
+
+    - name: "Restart and Enable Services"
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+      loop:
+        - munge
+        - slurmd

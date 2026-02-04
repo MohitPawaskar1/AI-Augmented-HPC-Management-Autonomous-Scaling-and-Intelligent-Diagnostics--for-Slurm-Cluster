@@ -1,0 +1,43 @@
+---
+- name: Install MariaDB and Slurm Master packages
+  apt:
+    name: [mariadb-server, slurmctld, slurmdbd, python3-pymysql]
+    state: present
+
+- name: Start MariaDB
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Create Slurm Accounting Database
+  mysql_db:
+    name: slurm_acct_db
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Slurm DB User
+  mysql_user:
+    name: slurm
+    password: "{{ ldap_admin_pass }}"
+    priv: 'slurm_acct_db.*:ALL'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Deploy Slurmdbd Config
+  template:
+    src: slurmdbd.conf.j2
+    dest: /etc/slurm/slurmdbd.conf
+    owner: slurm
+    group: slurm
+    mode: '0600'
+  notify: Restart Slurmdbd
+
+- name: Deploy Main Slurm Config
+  template:
+    src: slurm.conf.j2
+    dest: /etc/slurm/slurm.conf
+    owner: slurm
+    group: slurm
+    mode: '0644'
+  notify: Restart Slurmctld

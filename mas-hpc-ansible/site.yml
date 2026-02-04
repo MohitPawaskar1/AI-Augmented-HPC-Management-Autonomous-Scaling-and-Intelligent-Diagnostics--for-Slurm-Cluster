@@ -1,0 +1,35 @@
+---
+- name: 1. Setup Common Foundation
+  hosts: all
+  become: yes
+  roles: [common]
+
+- name: 2. Setup Shared Storage
+  hosts: all
+  become: yes
+  roles: [storage]
+
+- name: 3. Setup Identity (LDAP on Login)
+  hosts: all
+  become: yes
+  roles: [identity]
+
+- name: 4. Setup Slurm Master & Accounting
+  hosts: master
+  become: yes
+  roles: [master]
+
+- name: 5. Setup Slurm Compute Nodes
+  hosts: computes
+  become: yes
+  roles: [compute]
+
+- name: 6. Setup Login & AI Agents
+  hosts: login
+  become: yes
+  roles: [login]
+
+- name: 7. Setup Open OnDemand Portal
+  hosts: login
+  become: yes
+  roles: [portal]

@@ -1,0 +1,33 @@
+---
+- name: Install Slurm Client and Python dependencies
+  apt:
+    name:
+      - slurm-client
+      - python3-pip
+      - python3-venv
+      - git
+    state: present
+
+- name: Install Python libraries for AI Agents
+  pip:
+    name:
+      - boto3                  # For AWS Cloud Bursting (Agent-2)
+      - google-generativeai    # For Gemini AI Analysis (Agent-3)
+      - mysql-connector-python # For Database monitoring (Agent-1)
+    state: present
+
+- name: Create directory for Agent Logs
+  file:
+    path: "{{ nfs_root }}/agent_logs"
+    state: directory
+    owner: acts
+    group: acts
+    mode: '0755'
+
+- name: Deploy Slurm configuration to Login node
+  template:
+    src: "../../master/templates/slurm.conf.j2"
+    dest: /etc/slurm/slurm.conf
+    owner: root
+    group: root
+    mode: '0644'

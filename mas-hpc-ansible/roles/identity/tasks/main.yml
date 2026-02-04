@@ -1,0 +1,37 @@
+---
+# ==========================================
+# PART 1: LDAP SERVER SETUP (Runs on Login)
+# ==========================================
+- name: Install OpenLDAP Server packages
+  apt:
+    name: [slapd, ldap-utils]
+    state: present
+  when: inventory_hostname == 'login'
+
+- name: Configure LDAP Server from template
+  template:
+    src: ldap.conf.j2
+    dest: /etc/ldap/ldap.conf
+  when: inventory_hostname == 'login'
+  notify: Restart Slapd
+
+# ==========================================
+# PART 2: LDAP CLIENT SETUP (Master & Computes)
+# ==========================================
+- name: Install LDAP Client packages
+  apt:
+    name: [libnss-ldap, libpam-ldap, ldap-utils, nscd]
+    state: present
+  when: inventory_hostname != 'login'
+
+- name: Configure NSSwitch to recognize LDAP users
+  lineinfile:
+    path: /etc/nsswitch.conf
+    regexp: "^{{ item.key }}:"
+    line: "{{ item.key }}:         files ldap"
+  loop:
+    - { key: 'passwd' }
+    - { key: 'group' }
+    - { key: 'shadow' }
+  when: inventory_hostname != 'login'
+  notify: Restart NSCD
