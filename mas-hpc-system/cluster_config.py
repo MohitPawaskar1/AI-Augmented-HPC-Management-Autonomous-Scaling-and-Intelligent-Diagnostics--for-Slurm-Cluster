@@ -28,7 +28,7 @@ CLOUD_PROVISIONING = {
     "INSTANCE_TYPE": "t3.micro",
     "VCPU_LIMIT": 16,
     "MAX_BURST_NODES": 2,
-    "TS_AUTH_KEY": os.getenv("TS_AUTH_KEY", "tskey-auth-kEkVDMqxTD11CNTRL-CX2H4djWHnat3X2dXbz3naoLJLvkBQbqA")
+    "TS_AUTH_KEY": os.getenv("TS_AUTH_KEY", "TAILSCALE-API-KEY")
 }
 
 SLURM_STATES = {
